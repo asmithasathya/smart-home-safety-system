@@ -47,6 +47,37 @@ static struct button buttons[] = {
 #endif
 };
 
+ // Ensures controller shows only one active mode LED at a time
+static void show_mode_led(int index)
+{
+	for (int j = 0; j < ARRAY_SIZE(buttons); ++j) {
+		buttons[j].status = false;
+		dk_set_led(j, false);
+	}
+
+	if (index >= 0 && index < 3) {
+		buttons[index].status = true;
+		dk_set_led(index, true);
+	}
+}
+
+// Match each index with the mode name for logging
+static const char *action_name(int index)
+{
+	switch (index) {
+	case 0:
+		return "HOME";
+	case 1:
+		return "AWAY";
+	case 2:
+		return "NIGHT";
+	case 3:
+		return "CLEAR ALERT";
+	default:
+		return "UNKNOWN";
+	}
+}
+
 static void status_handler(struct bt_mesh_onoff_cli *cli,
 			   struct bt_mesh_msg_ctx *ctx,
 			   const struct bt_mesh_onoff_status *status)
@@ -55,12 +86,20 @@ static void status_handler(struct bt_mesh_onoff_cli *cli,
 		CONTAINER_OF(cli, struct button, client);
 	int index = button - &buttons[0];
 
-	button->status = status->present_on_off;
-	dk_set_led(index, status->present_on_off);
+	// Button status from one mode LED at a time
+	if (index < 3 && status->present_on_off) {
+		show_mode_led(index);
+	} else {
+		button->status = status->present_on_off;
+		dk_set_led(index, status->present_on_off);
+	}
 
-	printk("Button %d: Received response: %s\n", index + 1,
+	// Logs the status of the button in UART
+	printk("%s response: %s\n", action_name(index),
 	       status->present_on_off ? "on" : "off");
 }
+
+static struct k_work_delayable clear_feedback_off_work;
 
 static void button_handler_cb(uint32_t pressed, uint32_t changed)
 {
@@ -78,9 +117,14 @@ static void button_handler_cb(uint32_t pressed, uint32_t changed)
 			continue;
 		}
 
+		// Button 0 sends ON for Home
+		// Button 1 sends ON for Away
+		// Button 2 sends ON for Night
+		// Button 3 sends OFF for Clear Alert
 		struct bt_mesh_onoff_set set = {
-			.on_off = !buttons[i].status,
+			.on_off = (i == 3) ? 0 : 1,
 		};
+		printk("Sending %s\n", action_name(i));
 		int err;
 
 		/* As we can't know how many nodes are in a group, it doesn't
@@ -99,8 +143,14 @@ static void button_handler_cb(uint32_t pressed, uint32_t changed)
 				/* There'll be no response status for the
 				 * unacked message. Set the state immediately.
 				 */
-				buttons[i].status = set.on_off;
-				dk_set_led(i, set.on_off);
+				// Sets the LED status for the button
+				if (i < 3) {
+					show_mode_led(i);
+				} else {
+					buttons[i].status = false;
+					dk_set_led(3, true);
+					k_work_reschedule(&clear_feedback_off_work, K_MSEC(300));
+				}
 			}
 		}
 
@@ -108,6 +158,12 @@ static void button_handler_cb(uint32_t pressed, uint32_t changed)
 			printk("OnOff %d set failed: %d\n", i + 1, err);
 		}
 	}
+}
+
+// Led 3 sends feedback
+static void clear_feedback_off(struct k_work *work)
+{
+	dk_set_led(3, false);
 }
 
 /* Set up a repeating delayed work to blink the DK's LEDs when attention is
@@ -209,6 +265,7 @@ const struct bt_mesh_comp *model_handler_init(void)
 
 	dk_button_handler_add(&button_handler);
 	k_work_init_delayable(&attention_blink_work, attention_blink);
+	k_work_init_delayable(&clear_feedback_off_work, clear_feedback_off);
 
 	return &comp;
 }
