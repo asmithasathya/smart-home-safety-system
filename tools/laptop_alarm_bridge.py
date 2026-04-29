@@ -5,8 +5,8 @@ UART-to-speaker event bridge for Smart Home Safety System.
 Listens for:
   - "ALERT: ACTIVE" -> start repeating alarm sound
   - "ALERT: CLEAR"  -> stop alarm sound
-  - "MODE: NIGHT"   -> play one-shot goodnight sound
-  - "Sending NIGHT" -> play one-shot goodnight sound from controller UART
+  - First "MODE: NIGHT (armed)" in a night session -> play one-shot goodnight
+  - "MODE: HOME"/"MODE: AWAY" -> reset night-session latch
 
 macOS primary path: afplay (built-in)
 """
@@ -200,6 +200,7 @@ def main() -> int:
     shutting_down = False
     last_trigger_ms = 0
     last_night_ms = 0
+    night_goodnight_played = False
 
     def shutdown_handler(_sig: int, _frame: object) -> None:
         nonlocal shutting_down
@@ -237,14 +238,16 @@ def main() -> int:
                 elif "ALERT:" in upper_line and "CLEAR" in upper_line:
                     print("[bridge] Trigger: ALERT CLEAR")
                     alarm.stop()
-                elif (
-                    ("MODE:" in upper_line and "NIGHT" in upper_line)
-                    or ("SENDING NIGHT" in upper_line)
-                ):
-                    if now_ms - last_night_ms >= args.night_cooldown_ms:
-                        print("[bridge] Trigger: NIGHT")
+                elif "MODE:" in upper_line and "NIGHT" in upper_line and "ARMED" in upper_line:
+                    if not night_goodnight_played and now_ms - last_night_ms >= args.night_cooldown_ms:
+                        print("[bridge] Trigger: NIGHT (first armed in session)")
                         night.play()
                         last_night_ms = now_ms
+                        night_goodnight_played = True
+                elif "MODE:" in upper_line and ("HOME" in upper_line or "AWAY" in upper_line):
+                    if night_goodnight_played:
+                        print("[bridge] Night latch reset by mode change")
+                    night_goodnight_played = False
     except Exception as exc:
         alarm.close()
         night.close()
