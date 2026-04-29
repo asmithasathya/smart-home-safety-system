@@ -1,2 +1,4 @@
 venv
-__pychache__
+build/
+__pycache__/
+*.pyc
