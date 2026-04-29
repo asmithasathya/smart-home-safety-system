@@ -40,6 +40,7 @@ This file tracks project changes and implementation notes so the final report ca
 - Bridge behavior:
   - Detects `ALERT: ACTIVE` in UART and starts repeating alarm sound on macOS using `afplay`.
   - Detects `ALERT: CLEAR` and stops the alarm sound.
+- Extended the bridge to detect `MODE: NIGHT` and play `goodnight_sound.mp3` once for a bedtime-style effect.
 - Added CLI options for serial port, baud rate, custom sound file, and trigger cooldown.
 - This enables a higher-impact demo without extra hardware by using the laptop speaker as the siren output.
 

@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
-UART-to-speaker alarm bridge for Smart Home Safety System.
+UART-to-speaker event bridge for Smart Home Safety System.
 
 Listens for:
   - "ALERT: ACTIVE" -> start repeating alarm sound
   - "ALERT: CLEAR"  -> stop alarm sound
+  - "MODE: NIGHT"   -> play one-shot goodnight sound
+  - "Sending NIGHT" -> play one-shot goodnight sound from controller UART
 
 macOS primary path: afplay (built-in)
 """
@@ -24,7 +26,7 @@ from typing import Optional
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Play laptop alarm from board UART logs."
+        description="Play laptop sounds from board UART logs."
     )
     parser.add_argument(
         "--port",
@@ -42,15 +44,31 @@ def parse_args() -> argparse.Namespace:
         help="Sound file to play with afplay (default: alarm.m4a in repo root)",
     )
     parser.add_argument(
+        "--night-sound",
+        default="goodnight_sound.mp3",
+        help="One-shot sound file for Night mode (default: goodnight_sound.mp3 in repo root)",
+    )
+    parser.add_argument(
         "--cooldown-ms",
         type=int,
         default=800,
         help="Minimum ms between retriggers while already active",
     )
     parser.add_argument(
+        "--night-cooldown-ms",
+        type=int,
+        default=2000,
+        help="Minimum ms between Night mode sound triggers",
+    )
+    parser.add_argument(
         "--test-sound",
         action="store_true",
-        help="Play the configured sound once and exit",
+        help="Play the configured alarm sound once and exit",
+    )
+    parser.add_argument(
+        "--test-night-sound",
+        action="store_true",
+        help="Play the configured Night mode sound once and exit",
     )
     return parser.parse_args()
 
@@ -115,6 +133,31 @@ class AlarmPlayer:
                 time.sleep(0.2)
 
 
+class OneShotPlayer:
+    def __init__(self, sound_path: str) -> None:
+        self.sound_path = sound_path
+        self._child: Optional[subprocess.Popen] = None
+
+    def play(self) -> None:
+        self.close()
+        try:
+            self._child = subprocess.Popen(["afplay", self.sound_path])
+            print("[bridge] Night sound started")
+        except FileNotFoundError:
+            print("[bridge] afplay not found; cannot play Night sound", file=sys.stderr)
+        except Exception as exc:  # pragma: no cover
+            print(f"[bridge] Night playback error: {exc}", file=sys.stderr)
+
+    def close(self) -> None:
+        if self._child and self._child.poll() is None:
+            self._child.terminate()
+            try:
+                self._child.wait(timeout=0.5)
+            except subprocess.TimeoutExpired:
+                self._child.kill()
+        self._child = None
+
+
 def main() -> int:
     args = parse_args()
     if not shutil.which("afplay"):
@@ -125,9 +168,18 @@ def main() -> int:
         print(f"Sound file not found: {args.sound}", file=sys.stderr)
         return 2
 
+    if not os.path.exists(args.night_sound):
+        print(f"Night sound file not found: {args.night_sound}", file=sys.stderr)
+        return 2
+
     if args.test_sound:
         print(f"[bridge] Test-playing: {args.sound}")
         ret = subprocess.run(["afplay", args.sound]).returncode
+        return ret
+
+    if args.test_night_sound:
+        print(f"[bridge] Test-playing Night sound: {args.night_sound}")
+        ret = subprocess.run(["afplay", args.night_sound]).returncode
         return ret
 
     if not args.port:
@@ -144,20 +196,24 @@ def main() -> int:
         return 2
 
     alarm = AlarmPlayer(args.sound)
+    night = OneShotPlayer(args.night_sound)
     shutting_down = False
     last_trigger_ms = 0
+    last_night_ms = 0
 
     def shutdown_handler(_sig: int, _frame: object) -> None:
         nonlocal shutting_down
         shutting_down = True
         alarm.close()
+        night.close()
         print("\n[bridge] Exiting...")
 
     signal.signal(signal.SIGINT, shutdown_handler)
     signal.signal(signal.SIGTERM, shutdown_handler)
 
     print(f"[bridge] Opening {args.port} @ {args.baud}")
-    print(f"[bridge] Sound file: {args.sound}")
+    print(f"[bridge] Alarm sound: {args.sound}")
+    print(f"[bridge] Night sound: {args.night_sound}")
 
     try:
         with serial.Serial(args.port, args.baud, timeout=0.2) as ser:
@@ -181,12 +237,22 @@ def main() -> int:
                 elif "ALERT:" in upper_line and "CLEAR" in upper_line:
                     print("[bridge] Trigger: ALERT CLEAR")
                     alarm.stop()
+                elif (
+                    ("MODE:" in upper_line and "NIGHT" in upper_line)
+                    or ("SENDING NIGHT" in upper_line)
+                ):
+                    if now_ms - last_night_ms >= args.night_cooldown_ms:
+                        print("[bridge] Trigger: NIGHT")
+                        night.play()
+                        last_night_ms = now_ms
     except Exception as exc:
         alarm.close()
+        night.close()
         print(f"[bridge] Serial error: {exc}", file=sys.stderr)
         return 1
 
     alarm.close()
+    night.close()
     return 0
 
 

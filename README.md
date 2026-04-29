@@ -155,7 +155,11 @@ The controller should also update its LEDs so that only one mode LED is active a
 
 ## Laptop Alarm Bridge Setup (macOS)
 
-Use this to play `alarm.m4a` from your laptop speaker whenever UART logs show `ALERT: ACTIVE`.
+Use this to play:
+- `alarm.m4a` repeatedly whenever UART logs show `ALERT: ACTIVE`
+- `goodnight_sound.mp3` once whenever UART logs show `MODE: NIGHT` or `Sending NIGHT`
+
+For the best demo flow, point this bridge at the `alarm` or `light` board UART so you can keep the `controller` UART free for password entry.
 
 ### 1. Create and activate a Python virtual environment
 
@@ -180,27 +184,38 @@ ls /dev/cu.usbmodem*
 
 Pick the port for the board whose UART prints the alert logs.
 
-### 4. Test sound playback once
+### 4. Test alarm sound playback once
 
 ```bash
 python3 tools/laptop_alarm_bridge.py --test-sound
 ```
 
-### 5. Run the live UART-to-speaker bridge
+### 5. Test Night mode sound playback once
+
+```bash
+python3 tools/laptop_alarm_bridge.py --test-night-sound
+```
+
+### 6. Run the live UART-to-speaker bridge
 
 ```bash
 python3 tools/laptop_alarm_bridge.py --port /dev/cu.usbmodemXXXXXXXXXXXX --baud 115200
 ```
 
-This now defaults to `alarm.m4a` in repo root.
+This now defaults to:
+- `alarm.m4a` for alert playback
+- `goodnight_sound.mp3` for Night mode playback
 
-### 6. Optional: use a different sound file
+### 7. Optional: use different sound files
 
 ```bash
-python3 tools/laptop_alarm_bridge.py --port /dev/cu.usbmodemXXXXXXXXXXXX --sound /System/Library/Sounds/Glass.aiff
+python3 tools/laptop_alarm_bridge.py \
+  --port /dev/cu.usbmodemXXXXXXXXXXXX \
+  --sound /System/Library/Sounds/Glass.aiff \
+  --night-sound goodnight_sound.mp3
 ```
 
-### 7. Stop the script
+### 8. Stop the script
 
 Press `Ctrl+C` in the terminal.
 
@@ -208,4 +223,4 @@ Press `Ctrl+C` in the terminal.
 
 - If `--test-sound` works but live mode is silent, verify the correct serial port is used.
 - Ensure no other app (`screen`, VS Code serial monitor) is connected to the same port.
-- Confirm UART lines include `ALERT: ACTIVE` and `ALERT: CLEAR`.
+- Confirm UART lines include `ALERT: ACTIVE`, `ALERT: CLEAR`, or `MODE: NIGHT`.
