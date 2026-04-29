@@ -29,3 +29,7 @@ This file tracks project changes and implementation notes so the final report ca
 - Added alert handling so the `Alert` mesh channel drives a global flashing pattern across all LEDs until `Alert OFF` is received.
 - Added UART logs for `MODE: ...` and `ALERT: ...` state changes, plus default boot logs for `HOME` and cleared alert state.
 - Updated `light/prj.conf` device strings so provisioning shows this board as `Smart Home Light Node` instead of the generic sample name.
+
+### Repo Maintenance
+
+- Converted `light/` from a gitlink-style entry in the parent repository index into a normal tracked folder so the project uses only the main `smart-home-safety-system` repo and not a nested submodule-like entry for the light node.
