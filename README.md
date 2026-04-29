@@ -108,6 +108,11 @@ If the main laptop is only running the dashboard and has no board plugged in, ad
 
 The UART agents send small heartbeats every few seconds, so the dashboard keeps each node marked online even when that board is not currently printing new log messages.
 
+Troubleshooting:
+- `Resource busy` means another app has the UART open. Close `screen`, VS Code serial monitor, nRF terminal, or any other serial tool using that board.
+- If a laptop shows two `/dev/cu.usbmodem...` ports for one board, try both. Use the one that prints readable boot/log lines like `Bluetooth initialized`, `Mesh initialized`, or `Sending AWAY`.
+- If the UART prints occasional non-text bytes, the agent replaces them instead of crashing.
+
 ### Sound Behavior
 
 - `ALERT ACTIVE` starts the looping threat sound.
