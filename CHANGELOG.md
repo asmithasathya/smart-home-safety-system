@@ -30,6 +30,38 @@ This file tracks project changes and implementation notes so the final report ca
 - Added UART logs for `MODE: ...` and `ALERT: ...` state changes, plus default boot logs for `HOME` and cleared alert state.
 - Updated `light/prj.conf` device strings so provisioning shows this board as `Smart Home Light Node` instead of the generic sample name.
 
+### Added Visual Command Center
+
+- Added a new responsive browser dashboard in `dashboard/` branded as `MeshGuard Command Center` for laptop and phone demos.
+- Implemented a cinematic control-room UI with a live mode banner, animated room floorplan, node vitals, incident panel, and scrolling event timeline.
+- Added browser-side audio integration so alert and Night-mode sounds are triggered directly from the dashboard after the user enables audio.
+- Added `tools/meshguard_command_center.py`, a zero-extra-dependency Python server that serves the dashboard, streams live state over Server-Sent Events, and reads UART from the three boards using built-in macOS tools.
+- Added optional desktop speaker playback through `afplay` so the laptop can blare the alert loop even if the dashboard is being viewed from a phone.
+- Reused the existing repo sound assets for the live demo instead of introducing external media dependencies.
+- Updated the root `README.md` with quick-start instructions for both dashboard demo mode and live three-board mode.
+
+### Hardened Visual Command Center
+
+- Added `--list-ports` to `tools/meshguard_command_center.py` so the team can identify `/dev/cu.usbmodem*` ports before starting the live dashboard.
+- Fixed command-center shutdown so `Ctrl-C` can stop the HTTP server without blocking in the signal handler.
+- Improved UART startup diagnostics so bad or busy serial ports print a useful error instead of failing silently in a background thread.
+- Renamed the demo thread stop flag to avoid shadowing Python `Thread` internals.
+- Added HTTP `HEAD` support for dashboard, API, and media routes so quick health checks do not report false endpoint failures.
+- Suppressed expected browser/SSE disconnect tracebacks so the demo console stays clean when phones or verification tools disconnect.
+- Added sound-file existence checks before the command center starts.
+- Fixed Night-mode audio triggering so the bedtime sound plays once per mode transition instead of once per board log.
+- Improved browser dashboard behavior when the event stream is unavailable and when browser audio playback is blocked.
+- Added `DEMO.md` with a full step-by-step presentation script for the real boards, laptop dashboard, phone display, and backup demo mode.
+
+### Added Distributed Laptop Demo Mode
+
+- Added `/api/ingest` to `tools/meshguard_command_center.py` so remote laptops can forward UART logs into the main visual dashboard over Wi-Fi.
+- Added optional `--ingest-token` support for the command center and matching `--token` support for remote UART agents.
+- Added `--remote-only` so the main dashboard can run even when no board is plugged into that laptop.
+- Added `tools/meshguard_uart_agent.py`, a zero-extra-dependency UART forwarder for the controller, light, or alarm laptop.
+- Added local and remote UART heartbeats so dashboard node status stays online during quiet periods between board log messages.
+- Updated `README.md` and `DEMO.md` with commands for the three-laptop setup where each laptop owns one board.
+
 ### Repo Maintenance
 
 - Converted `light/` from a gitlink-style entry in the parent repository index into a normal tracked folder so the project uses only the main `smart-home-safety-system` repo and not a nested submodule-like entry for the light node.

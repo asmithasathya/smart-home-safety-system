@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MeshGuard Command Center</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body data-theme="home">
+    <div class="app-shell">
+      <div class="ambient-grid"></div>
+      <div class="ambient-rings"></div>
+      <aside class="sidebar">
+        <div class="brand-lockup">
+          <div class="brand-mark">
+            <span class="brand-core"></span>
+          </div>
+          <div>
+            <p class="brand-name">MeshGuard</p>
+            <p class="brand-tag">Bluetooth Mesh Smart Home Safety</p>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <button class="nav-pill active" type="button">Dashboard</button>
+          <button class="nav-pill" type="button">Floorplan</button>
+          <button class="nav-pill" type="button">Devices</button>
+          <button class="nav-pill" type="button">History</button>
+        </nav>
+
+        <section class="system-rail">
+          <p class="eyebrow">System Controls</p>
+          <div class="shield-card" id="statusShield">
+            <div class="shield-icon"></div>
+            <p class="shield-status" id="shieldStatus">HOME SAFE</p>
+            <p class="shield-caption" id="shieldCaption">All nodes synchronized</p>
+          </div>
+          <div class="quick-actions">
+            <span class="action-chip" id="actionModeChip">Home</span>
+            <span class="action-chip" id="actionAudioChip">Audio Locked</span>
+          </div>
+        </section>
+      </aside>
+
+      <main class="main-panel">
+        <header class="hero-banner" id="heroBanner">
+          <div class="wave-strip">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="hero-copy">
+            <p class="hero-overline" id="heroOverline">Mesh synchronized</p>
+            <h1 id="heroTitle">HOME MODE ENGAGED</h1>
+            <p class="hero-subline" id="heroSubline">
+              Command center online and awaiting live events.
+            </p>
+          </div>
+          <div class="hero-status-cluster">
+            <div class="status-orb" id="audioOrb">
+              <div class="status-orb-ring"></div>
+              <button id="audioToggle" type="button">Enable Audio</button>
+            </div>
+            <div class="hero-meta">
+              <span id="systemStateLabel">Disarmed Home</span>
+              <span id="lastEventTime">Waiting for UART</span>
+            </div>
+          </div>
+        </header>
+
+        <section class="content-grid">
+          <article class="panel panel-floorplan">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Apartment Telemetry</p>
+                <h2>Live Mesh Floorplan</h2>
+              </div>
+              <div class="panel-badges">
+                <span class="badge badge-soft" id="syncBadge">Awaiting nodes</span>
+                <span class="badge" id="modeBadge">HOME</span>
+              </div>
+            </div>
+
+            <div class="floorplan-stage" id="floorplanStage">
+              <div class="floor-connector connector-left"></div>
+              <div class="floor-connector connector-right"></div>
+
+              <div class="room room-controller" id="room-controller">
+                <div class="room-icon"></div>
+                <div class="room-copy">
+                  <p class="room-name">Entryway Controller</p>
+                  <p class="room-meta" id="controller-meta">Waiting for signal</p>
+                </div>
+                <div class="room-pulse"></div>
+              </div>
+
+              <div class="room room-light" id="room-light">
+                <div class="room-icon"></div>
+                <div class="room-copy">
+                  <p class="room-name">Living Room Light</p>
+                  <p class="room-meta" id="light-meta">Waiting for signal</p>
+                </div>
+                <div class="room-pulse"></div>
+              </div>
+
+              <div class="room room-alarm" id="room-alarm">
+                <div class="room-icon"></div>
+                <div class="room-copy">
+                  <p class="room-name">Bedroom Alarm</p>
+                  <p class="room-meta" id="alarm-meta">Waiting for signal</p>
+                </div>
+                <div class="room-pulse"></div>
+              </div>
+            </div>
+          </article>
+
+          <aside class="stack-column">
+            <article class="panel incident-panel" id="incidentPanel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Active Incident</p>
+                  <h2 id="incidentTitle">No active incident</h2>
+                </div>
+                <span class="incident-level" id="incidentLevel">Stable</span>
+              </div>
+              <p class="incident-copy" id="incidentCopy">
+                Waiting for controller, light, and alarm activity.
+              </p>
+              <div class="signal-track">
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <div class="incident-footer">
+                <span id="incidentZone">Zone: Apartment</span>
+                <span id="incidentTimestamp">Time: --</span>
+              </div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="eyebrow">Audio Matrix</p>
+                  <h2>Sound Integration</h2>
+                </div>
+                <span class="badge badge-soft" id="audioStateBadge">Browser locked</span>
+              </div>
+              <div class="audio-stack">
+                <div class="audio-row">
+                  <div>
+                    <p class="audio-title">Threat Loop</p>
+                    <p class="audio-meta">Loops on ALERT ACTIVE</p>
+                  </div>
+                  <span class="audio-indicator" id="alertAudioIndicator">Standby</span>
+                </div>
+                <div class="audio-row">
+                  <div>
+                    <p class="audio-title">Night Transition</p>
+                    <p class="audio-meta">One-shot cue on NIGHT</p>
+                  </div>
+                  <span class="audio-indicator" id="nightAudioIndicator">Standby</span>
+                </div>
+              </div>
+            </article>
+          </aside>
+        </section>
+
+        <section class="lower-grid">
+          <article class="panel timeline-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Mission Log</p>
+                <h2>Event Timeline</h2>
+              </div>
+              <span class="badge badge-soft" id="timelineBadge">Live</span>
+            </div>
+            <div class="timeline-list" id="timelineList"></div>
+          </article>
+
+          <article class="panel health-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Mesh Network Health</p>
+                <h2>Node Vital Signs</h2>
+              </div>
+              <span class="badge" id="healthBadge">0 / 3 online</span>
+            </div>
+            <div class="node-grid" id="nodeGrid"></div>
+          </article>
+        </section>
+
+        <footer class="status-strip">
+          <div class="strip-block">
+            <span class="strip-label">Network</span>
+            <strong id="networkState">Offline</strong>
+          </div>
+          <div class="strip-block">
+            <span class="strip-label">Alert Count</span>
+            <strong id="alertCount">0</strong>
+          </div>
+          <div class="strip-block">
+            <span class="strip-label">Last Intrusion</span>
+            <strong id="lastIntrusion">None</strong>
+          </div>
+          <div class="strip-block">
+            <span class="strip-label">Phone Access</span>
+            <strong id="phoneHint">Open this same URL on your phone</strong>
+          </div>
+        </footer>
+      </main>
+    </div>
+
+    <audio id="alertSound" preload="auto" loop src="/media/alert"></audio>
+    <audio id="nightSound" preload="auto" src="/media/night"></audio>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>
