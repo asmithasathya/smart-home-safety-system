@@ -61,6 +61,8 @@ This file tracks project changes and implementation notes so the final report ca
 - Added `tools/meshguard_uart_agent.py`, a zero-extra-dependency UART forwarder for the controller, light, or alarm laptop.
 - Added local and remote UART heartbeats so dashboard node status stays online during quiet periods between board log messages.
 - Updated the UART agent so `--command-center` accepts either the base dashboard URL or the full `/api/ingest` endpoint printed by the command center.
+- Hardened UART decoding in both the command center and remote agent so non-UTF8 serial bytes are replaced instead of crashing the process.
+- Added README troubleshooting notes for busy UART ports and dual `/dev/cu.usbmodem...` board interfaces.
 - Updated `README.md` and `DEMO.md` with commands for the three-laptop setup where each laptop owns one board.
 
 ### Recovered Light Build Directory
