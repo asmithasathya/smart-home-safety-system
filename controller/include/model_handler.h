@@ -19,6 +19,7 @@ extern "C" {
 #endif
 
 const struct bt_mesh_comp *model_handler_init(void);
+void controller_handle_uart_password(const char *input);
 
 #ifdef __cplusplus
 }

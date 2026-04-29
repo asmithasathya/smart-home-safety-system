@@ -228,7 +228,11 @@ static void channel_set(struct bt_mesh_onoff_srv *srv, struct bt_mesh_msg_ctx *c
 		}
 		break;
 	case CHANNEL_ALERT:
-		set_alert(set->on_off);
+		if (set->on_off) {
+			set_alert(true);
+		} else if (state.alert_active) {
+			set_alert(false);
+		}
 		break;
 	default:
 		break;

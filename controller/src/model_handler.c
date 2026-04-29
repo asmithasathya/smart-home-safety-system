@@ -16,6 +16,7 @@
 #include <zephyr/bluetooth/mesh/proxy.h>
 #include <bluetooth/mesh/models.h>
 #include <dk_buttons_and_leds.h>
+#include <string.h>
 #include "model_handler.h"
 
 /* Light switch behavior */
@@ -46,6 +47,10 @@ static struct button buttons[] = {
 	{ .client = BT_MESH_ONOFF_CLI_INIT(&status_handler) },
 #endif
 };
+
+#define CONTROLLER_CLEAR_PASSWORD "1234"
+
+static bool clear_request_pending;
 
  // Ensures controller shows only one active mode LED at a time
 static void show_mode_led(int index)
@@ -101,6 +106,43 @@ static void status_handler(struct bt_mesh_onoff_cli *cli,
 
 static struct k_work_delayable clear_feedback_off_work;
 
+static void show_clear_feedback(void)
+{
+	dk_set_led(3, true);
+	k_work_reschedule(&clear_feedback_off_work, K_MSEC(300));
+}
+
+static int send_button_action(int index)
+{
+	struct bt_mesh_onoff_set set = {
+		.on_off = (index == 3) ? 0 : 1,
+	};
+	int err;
+
+	printk("Sending %s\n", action_name(index));
+
+	if (bt_mesh_model_pub_is_unicast(buttons[index].client.model) &&
+	    !IS_ENABLED(CONFIG_BT_MESH_LOW_POWER)) {
+		err = bt_mesh_onoff_cli_set(&buttons[index].client, NULL, &set, NULL);
+	} else {
+		err = bt_mesh_onoff_cli_set_unack(&buttons[index].client, NULL, &set);
+		if (!err) {
+			if (index < 3) {
+				show_mode_led(index);
+			} else {
+				buttons[index].status = false;
+				show_clear_feedback();
+			}
+		}
+	}
+
+	if (err) {
+		printk("OnOff %d set failed: %d\n", index + 1, err);
+	}
+
+	return err;
+}
+
 static void button_handler_cb(uint32_t pressed, uint32_t changed)
 {
 	if (!bt_mesh_is_provisioned()) {
@@ -117,47 +159,41 @@ static void button_handler_cb(uint32_t pressed, uint32_t changed)
 			continue;
 		}
 
-		// Button 0 sends ON for Home
-		// Button 1 sends ON for Away
-		// Button 2 sends ON for Night
-		// Button 3 sends OFF for Clear Alert
-		struct bt_mesh_onoff_set set = {
-			.on_off = (i == 3) ? 0 : 1,
-		};
-		printk("Sending %s\n", action_name(i));
-		int err;
-
-		/* As we can't know how many nodes are in a group, it doesn't
-		 * make sense to send acknowledged messages to group addresses -
-		 * we won't be able to make use of the responses anyway. This also
-		 * applies in LPN mode, since we can't expect to receive a response
-		 * in appropriate time.
-		 */
-		if (bt_mesh_model_pub_is_unicast(buttons[i].client.model) &&
-		    !IS_ENABLED(CONFIG_BT_MESH_LOW_POWER)) {
-			err = bt_mesh_onoff_cli_set(&buttons[i].client, NULL, &set, NULL);
-		} else {
-			err = bt_mesh_onoff_cli_set_unack(&buttons[i].client,
-							  NULL, &set);
-			if (!err) {
-				/* There'll be no response status for the
-				 * unacked message. Set the state immediately.
-				 */
-				// Sets the LED status for the button
-				if (i < 3) {
-					show_mode_led(i);
-				} else {
-					buttons[i].status = false;
-					dk_set_led(3, true);
-					k_work_reschedule(&clear_feedback_off_work, K_MSEC(300));
-				}
-			}
+		if (i == 3) {
+			show_clear_feedback();
+			clear_request_pending = true;
+			printk("CLEAR ALERT requested. Enter password in controller UART to confirm.\n");
+			continue;
 		}
 
-		if (err) {
-			printk("OnOff %d set failed: %d\n", i + 1, err);
+		if (send_button_action(i)) {
+			continue;
 		}
 	}
+}
+
+void controller_handle_uart_password(const char *input)
+{
+	int err;
+
+	if (!clear_request_pending) {
+		printk("Password ignored: press CLEAR ALERT first\n");
+		return;
+	}
+
+	if (strcmp(input, CONTROLLER_CLEAR_PASSWORD) != 0) {
+		printk("Password rejected: alert remains active\n");
+		return;
+	}
+
+	printk("Password accepted: clearing alert\n");
+	err = send_button_action(3);
+	if (err) {
+		printk("Failed to send confirmed clear alert\n");
+		return;
+	}
+
+	clear_request_pending = false;
 }
 
 // Led 3 sends feedback
@@ -266,6 +302,7 @@ const struct bt_mesh_comp *model_handler_init(void)
 	dk_button_handler_add(&button_handler);
 	k_work_init_delayable(&attention_blink_work, attention_blink);
 	k_work_init_delayable(&clear_feedback_off_work, clear_feedback_off);
+	printk("Controller UART password confirmation enabled for alert clear\n");
 
 	return &comp;
 }
