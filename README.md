@@ -152,3 +152,60 @@ The controller should also update its LEDs so that only one mode LED is active a
 - Provisioning is stored on the board, so unplugging and replugging the board does not remove it from the mesh network.
 - Changing Wi-Fi networks does not matter because Bluetooth Mesh here is independent of Wi-Fi.
 - If the board is erased or the mesh network is deleted from the app, provisioning must be repeated.
+
+## Laptop Alarm Bridge Setup (macOS)
+
+Use this to play `alarm.m4a` from your laptop speaker whenever UART logs show `ALERT: ACTIVE`.
+
+### 1. Create and activate a Python virtual environment
+
+From repo root:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 2. Install dependency
+
+```bash
+pip install pyserial
+```
+
+### 3. Find your board serial port
+
+```bash
+ls /dev/cu.usbmodem*
+```
+
+Pick the port for the board whose UART prints the alert logs.
+
+### 4. Test sound playback once
+
+```bash
+python3 tools/laptop_alarm_bridge.py --test-sound
+```
+
+### 5. Run the live UART-to-speaker bridge
+
+```bash
+python3 tools/laptop_alarm_bridge.py --port /dev/cu.usbmodemXXXXXXXXXXXX --baud 115200
+```
+
+This now defaults to `alarm.m4a` in repo root.
+
+### 6. Optional: use a different sound file
+
+```bash
+python3 tools/laptop_alarm_bridge.py --port /dev/cu.usbmodemXXXXXXXXXXXX --sound /System/Library/Sounds/Glass.aiff
+```
+
+### 7. Stop the script
+
+Press `Ctrl+C` in the terminal.
+
+### Troubleshooting
+
+- If `--test-sound` works but live mode is silent, verify the correct serial port is used.
+- Ensure no other app (`screen`, VS Code serial monitor) is connected to the same port.
+- Confirm UART lines include `ALERT: ACTIVE` and `ALERT: CLEAR`.

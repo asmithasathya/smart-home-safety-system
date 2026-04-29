@@ -33,3 +33,29 @@ This file tracks project changes and implementation notes so the final report ca
 ### Repo Maintenance
 
 - Converted `light/` from a gitlink-style entry in the parent repository index into a normal tracked folder so the project uses only the main `smart-home-safety-system` repo and not a nested submodule-like entry for the light node.
+
+### Added Laptop Speaker Alarm Bridge
+
+- Added `tools/laptop_alarm_bridge.py` to connect board UART logs to laptop audio alarm playback.
+- Bridge behavior:
+  - Detects `ALERT: ACTIVE` in UART and starts repeating alarm sound on macOS using `afplay`.
+  - Detects `ALERT: CLEAR` and stops the alarm sound.
+- Added CLI options for serial port, baud rate, custom sound file, and trigger cooldown.
+- This enables a higher-impact demo without extra hardware by using the laptop speaker as the siren output.
+
+### Run Laptop Alarm Bridge
+
+- Install dependency:
+  - `pip install pyserial`
+- Find serial port:
+  - `ls /dev/cu.usbmodem*`
+- Run:
+  - `python3 tools/laptop_alarm_bridge.py --port /dev/cu.usbmodemXXXX --baud 115200`
+- Optional custom sound:
+  - `python3 tools/laptop_alarm_bridge.py --port /dev/cu.usbmodemXXXX --sound /System/Library/Sounds/Glass.aiff`
+
+### Removed Controller Password Gate
+
+- Removed UART password authorization logic from `controller/src/model_handler.c`.
+- `Button 3` (`CLEAR ALERT`) now works immediately again without entering a password.
+- Removed controller console getchar settings from `controller/prj.conf` that were only needed for password input.
