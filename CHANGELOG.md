@@ -1,0 +1,31 @@
+# CHANGELOG
+
+This file tracks project changes and implementation notes so the final report can describe what was built, when it was added, and why it mattered.
+
+## 2026-04-29
+
+### Added
+
+- Created `CHANGELOG.md` to keep a running, report-ready record of project work across the controller, light node, and alarm node.
+
+### Documented Baseline
+
+- Audited `plan.md`, `Midterm Project Presentation.pptx`, `README.md`, and the current `controller/` code.
+- Confirmed the repo currently contains a customized `controller/` app and a copied-but-unmodified `light_ctrl/` sample; the planned `alarm-node/` app and shared `common/` module are not present yet.
+- Confirmed the current controller already sends fixed `HOME`, `AWAY`, `NIGHT`, and `CLEAR ALERT` actions, but it does not yet implement the planned `Alert` Generic OnOff Server behavior from `plan.md`.
+
+### Clarified Architecture
+
+- Compared the proposal slides against `plan.md` and confirmed `plan.md` is the implementation source of truth for v1.
+- Documented that the earlier slide proposal used Scene-based control and a sensor sample for Board 3, but the current plan intentionally simplifies this to four fixed Generic OnOff channels: `Home`, `Away`, `Night`, and `Alert`.
+- Audited `light_ctrl/` and confirmed it is still the Nordic `light_ctrl` NLC sample with Lightness, Scene, Sensor, and Light LC models, so it will need a substantial rewrite to become the project’s light node.
+- Identified the light-node work scope as replacing the current `light_ctrl` sample behavior with four Generic OnOff Servers and custom LED patterns for `Home`, `Away`, `Night`, and `Alert`.
+
+### Implemented Light Node
+
+- Switched the light-board work to the `light/` app, which is the correct Nordic `light` sample base for the planned v1 light node.
+- Replaced the stock `light/src/model_handler.c` behavior that treated each Generic OnOff Server as an independent LED with project-specific shared state for `HOME`, `AWAY`, `NIGHT`, and `ALERT`.
+- Added light-node mode handling so `Home`, `Away`, and `Night` mesh messages update one shared `current_mode` instead of four unrelated LED states.
+- Added alert handling so the `Alert` mesh channel drives a global flashing pattern across all LEDs until `Alert OFF` is received.
+- Added UART logs for `MODE: ...` and `ALERT: ...` state changes, plus default boot logs for `HOME` and cleared alert state.
+- Updated `light/prj.conf` device strings so provisioning shows this board as `Smart Home Light Node` instead of the generic sample name.
