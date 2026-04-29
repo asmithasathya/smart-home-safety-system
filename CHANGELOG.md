@@ -60,7 +60,14 @@ This file tracks project changes and implementation notes so the final report ca
 - Added `--remote-only` so the main dashboard can run even when no board is plugged into that laptop.
 - Added `tools/meshguard_uart_agent.py`, a zero-extra-dependency UART forwarder for the controller, light, or alarm laptop.
 - Added local and remote UART heartbeats so dashboard node status stays online during quiet periods between board log messages.
+- Updated the UART agent so `--command-center` accepts either the base dashboard URL or the full `/api/ingest` endpoint printed by the command center.
 - Updated `README.md` and `DEMO.md` with commands for the three-laptop setup where each laptop owns one board.
+
+### Recovered Light Build Directory
+
+- Diagnosed the `light/build` failure where Ninja depended on `../../.git/index`, which pointed at the old nested `light/.git/index` path after `light/` was converted from a gitlink-style folder into a normal project folder.
+- Regenerated `light/build` with a pristine build so `zephyr/include/generated/app_commit.h` now depends on the parent repository `.git/index`.
+- Verified the light app builds successfully for `nrf54l15dk/nrf54l15/cpuapp` and produces `light/build/merged.hex`.
 
 ### Repo Maintenance
 

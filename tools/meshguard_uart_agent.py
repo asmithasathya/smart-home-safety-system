@@ -74,7 +74,10 @@ def list_ports() -> List[str]:
 
 
 def ingest_url(command_center: str) -> str:
-    return command_center.rstrip("/") + "/api/ingest"
+    cleaned = command_center.rstrip("/")
+    if cleaned.endswith("/api/ingest"):
+        return cleaned
+    return cleaned + "/api/ingest"
 
 
 def post_payload(url: str, payload: dict, token: str, quiet_errors: bool = False) -> bool:
