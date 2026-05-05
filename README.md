@@ -1,6 +1,6 @@
 # Smart Home Safety System
 
-This repo contains a three-board Bluetooth Mesh smart home safety demo built on the Nordic `nRF54L15 DK`. Each board is flashed separately, each board has a different role, and all three work together on the same mesh network:
+This repo contains a three-board Bluetooth Mesh smart home safety demo built on the Nordic `nRF54L15 DK`:
 
 - `firmware/controller/` - Entryway Controller
 - `firmware/light/` - Living Room Light Node
@@ -56,8 +56,6 @@ Board responsibilities:
 
 ### Performance summary
 
-No formal measured values for latency, range, energy, or battery runtime are included in this repo.
-
 What is verified in this project:
 
 - all three firmware apps build successfully
@@ -66,8 +64,6 @@ What is verified in this project:
 - controller mode changes propagate to the light and alarm boards
 - the alarm board can publish global alert events
 - the alert clear flow requires password confirmation on the controller UART
-
-Methods for reproducing latency and range measurements are included later in this README, but no official benchmark numbers are claimed.
 
 ## B. Hardware details
 
@@ -98,26 +94,14 @@ Official references:
 
 ### Additional peripherals
 
-No external electronic peripherals were used.
-
 Only these supporting items were used:
 
 - `USB-C` data cables
 - laptops for flashing, UART logging, and optionally running the host script
 
-No external sensors, speakers, buzzers, relays, batteries, or custom modules were added.
-
 ### Hardware modifications
 
-No hardware modification was required.
-
-- no jumper rework
-- no bodge wires
-- no custom PCB
-- no enclosure
-- no soldering changes for the normal demo flow
-
-Because the final project uses stock dev kits only, there are no project-specific custom schematics or assembly photos in the repo. For official schematics, layout, and board documentation, use Nordic's hardware files bundle:
+For official schematics, layout, and board documentation, use Nordic's hardware files bundle:
 
 - Hardware files page: https://www.nordicsemi.com/Products/Development-hardware/nRF54L15-DK/Hardware-files
 - Hardware bundle: https://nsscprodmedia.blob.core.windows.net/prod/software-and-other-downloads/dev-kits/nrf54l15-dk/pca10156-nrf54l15-dk-1_0_0.zip
@@ -148,14 +132,8 @@ Nordic SoC RF specifications referenced for documentation:
 
 Expected range:
 
-- not formally measured
 - depends on room layout, walls, people, and interference
-- should be treated as a classroom/lab prototype rather than a tuned production RF design
-
-Compliance note:
-
-- this is a prototype on development hardware
-- the repo does not claim end-product RF certification or consumer-product compliance
+- should be treated as a class prototype rather than a production system
 
 ## C. Software environment
 
@@ -165,7 +143,7 @@ Compliance note:
 
 The project is intended to be built in a Nordic `nRF Connect SDK` environment.
 
-Verified versions from the current build environment:
+Versions from the current build environment:
 
 - `nRF Connect SDK v3.2.1`
 - `Zephyr v4.2.99`
@@ -179,7 +157,6 @@ Supported developer workflows:
 
 - `nRF Connect for VS Code`
 - `nRF Connect for Desktop`
-- plain terminal use with `west`
 
 #### SDK/RTOS/compiler summary
 
@@ -196,13 +173,11 @@ All three firmware apps are built for:
 nrf54l15dk/nrf54l15/cpuapp
 ```
 
-Each firmware folder contains a normal Zephyr app plus board-specific config files. The project also uses `sysbuild`, which builds the application and radio child image together.
-
 ### Other software
 
 #### Host-side software
 
-The optional laptop audio bridge uses:
+The laptop audio bridge uses:
 
 - language: `Python 3`
 - dependency file: `host/requirements.txt`
@@ -245,13 +220,10 @@ Key application-level configuration:
 - `GATT Proxy` enabled
 - provisioning via `PB-GATT`
 
-This repo does not implement custom PHY tuning, custom RF channels, or proprietary 2 Mbps/4 Mbps application data paths. It relies on the standard Bluetooth LE and Bluetooth Mesh stack behavior from the SDK.
-
 ## D. Reproducibility guide
 
 ### 1. Hardware setup
 
-No custom assembly is required.
 
 1. Take three `nRF54L15 DK` boards.
 2. Connect each board to a laptop with a USB-C data cable.
@@ -259,8 +231,6 @@ No custom assembly is required.
    - controller
    - light
    - alarm
-
-No inter-board wiring is needed.
 
 ### 2. Built-in button and LED map
 
@@ -294,15 +264,13 @@ No inter-board wiring is needed.
 
 ### 3. Environment setup
 
-Use an `nRF Connect SDK` terminal where `west` is already available.
+Use an `nRF Connect SDK` terminal where `west` is already present.
 
 From the repo root:
 
 ```bash
 cd smart-home-safety-system/
 ```
-
-Optional host-script setup:
 
 ```bash
 python3 -m venv venv
@@ -442,7 +410,7 @@ Recommended startup order:
 4. Confirm the nodes are already provisioned into the same mesh.
 5. Optionally start the host audio bridge.
 
-Optional host bridge:
+Host bridge:
 
 ```bash
 python3 host/laptop_alarm_bridge.py --test-sound
@@ -462,7 +430,7 @@ The host bridge watches for:
 - `ALERT: CLEAR` or `ALERT: CLEARED`
 - `MODE: NIGHT (armed)`
 
-For the cleanest demo, connect the host bridge to the `alarm` board UART so the controller UART stays free for password entry.
+For the demo, connect the host bridge to the `alarm` board UART so the controller UART stays free for password entry.
 
 ### 9. Demo verification steps
 
@@ -518,8 +486,6 @@ For the cleanest demo, connect the host bridge to the `alarm` board UART so the 
 
 ### 10. Testing and measurement
 
-No formal measurement dataset is included in the repo. The following methods can be used to reproduce simple evaluation results.
-
 #### Latency
 
 1. Open UART logs on the controller and one remote board.
@@ -543,13 +509,11 @@ Document the environment:
 
 #### Energy/runtime
 
-No battery-powered runtime or current-consumption results are claimed in this repo. The DK includes power-related hardware support, but it was not used in the final demo.
-
 ### 11. Troubleshooting
 
 #### `west: command not found`
 
-Use an `nRF Connect SDK` shell instead of a plain terminal.
+Use an `nRF Connect SDK` shell.
 
 #### Serial port does not appear
 
