@@ -299,7 +299,7 @@ Use an `nRF Connect SDK` terminal where `west` is already available.
 From the repo root:
 
 ```bash
-cd /Users/asmitha/embedded-sys/smart-home-safety-system
+cd smart-home-safety-system/
 ```
 
 Optional host-script setup:
@@ -309,6 +309,38 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r host/requirements.txt
 ```
+
+### 3.1 Sound playback setup (host bridge)
+
+The host bridge script is:
+
+- `host/laptop_alarm_bridge.py`
+
+It listens to alarm-board UART logs and plays local sounds with macOS `afplay`.
+
+Default sound assets:
+
+- repeating alarm sound: `host/assets/alarm.m4a`
+- one-shot Night mode sound: `host/assets/goodnight_sound.mp3`
+
+Setup steps:
+
+1. Verify local audio playback:
+   - `python3 host/laptop_alarm_bridge.py --test-sound`
+   - `python3 host/laptop_alarm_bridge.py --test-night-sound`
+2. Run the bridge against the alarm board UART:
+   - `python3 host/laptop_alarm_bridge.py --port /dev/cu.usbmodemXXXXXXXXXXXX --baud 115200`
+
+Expected sound triggers:
+
+- `ALERT: ACTIVE` -> start looping alarm sound
+- `ALERT: CLEAR` or `ALERT: CLEARED` -> stop alarm sound
+- first `MODE: NIGHT (armed)` in a night session -> play one-shot goodnight sound
+
+Optional custom sound files:
+
+- `--sound /path/to/custom_alarm_file`
+- `--night-sound /path/to/custom_night_file`
 
 ### 4. Build instructions
 
