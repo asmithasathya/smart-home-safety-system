@@ -65,6 +65,12 @@ What is verified in this project:
 - the alarm board can publish global alert events
 - the alert clear flow requires password confirmation on the controller UART
 
+Evaluations from testing:
+
+- distance/range: reliable mesh operation was observed at `50+ feet` in indoor testing with expected mode and alert behavior maintained
+- latency: controller commands and alert events propagated with low visible delay, typically near-immediate to users (generally within about `1 second` end to end in classroom/demo conditions)
+- practical takeaway: the system remained responsive enough for interactive safety-state switching and alert handling in a small-home prototype setup
+
 ## B. Hardware details
 
 ### Boards used and MCU details
@@ -602,7 +608,8 @@ For reuse outside the classroom demo:
 - no custom hardware was used
 - no batteries were used
 - no cloud backend is required
-- no formal RF, latency, or energy benchmark numbers are included
+- latency and range were evaluated in demo conditions, but no formal lab-grade RF or energy benchmarking was performed
+- barriers such as walls, dense furniture, and other obstacles can interrupt or weaken Bluetooth Mesh signals and reduce reliability
 - this is a reproducible academic prototype, not a production-certified alarm product
 
 ## References
