@@ -3,3 +3,8 @@ build/
 __pycache__/
 *.pyc
 .DS_Store
+CHANGELOG.md
+Midterm Project Presentation.pptx
+.cache/
+alarm-implementation-log.md
+docs/alarm-implementation-log.md
