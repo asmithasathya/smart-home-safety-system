@@ -6,4 +6,4 @@ What makes this useful is its balance of simplicity and reliability: no custom w
 
 ## System Figure
 
-![Smart Home Safety System diagram](system-diagram.png)
+![Smart Home Safety System diagram](docs/figures/system-diagram.png)

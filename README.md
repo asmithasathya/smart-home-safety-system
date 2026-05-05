@@ -11,6 +11,7 @@ This repo contains a three-board Bluetooth Mesh smart home safety demo built on 
 Related project docs:
 
 - [intro.md](intro.md)
+- [docs/figures/system-diagram.png](docs/figures/system-diagram.png)
 - [docs/UPDATES.md](docs/UPDATES.md)
 
 ## A. Introduction
