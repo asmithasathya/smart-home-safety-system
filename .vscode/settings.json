@@ -1,6 +1,7 @@
 {
     "nrf-connect.applications": [
-        "${workspaceFolder}/light",
-        "${workspaceFolder}/alarm"
+        "${workspaceFolder}/firmware/controller",
+        "${workspaceFolder}/firmware/light",
+        "${workspaceFolder}/firmware/alarm"
     ]
 }
